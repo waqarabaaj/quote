@@ -22,31 +22,42 @@ const GetQuoteForm = () => {
   };
 
   useEffect(() => {
-    // Create a script element
-    const script = document.createElement('script');
-    script.id = 'LeadiDscript';
-    script.type = 'text/javascript';
-    script.async = true;
-    script.src = '//create.lidstatic.com/campaign/620fff68-8b52-6dc4-ab7c-9b6528fcd444.js?snippet_version=2&f=reset';
+    const scriptId = 'LeadiDscript';
     
-    // Append the script to the document
-    document.body.appendChild(script);
+    // Check if the script already exists
+    if (!document.getElementById(scriptId)) {
+      const script = document.createElement('script');
+      script.id = scriptId;
+      script.type = 'text/javascript';
+      script.async = true;
+      script.src = '//create.lidstatic.com/campaign/620fff68-8b52-6dc4-ab7c-9b6528fcd444.js?snippet_version=2&f=reset';
+      
+      document.body.appendChild(script);
 
-    // Function to capture the output and set it in formData
-    script.onload = () => {
-      // Assuming the script sets a global variable or ID that we can access
-      const leadId = document.getElementById('leadid_token')?.value;
-      if (leadId) {
-        setFormData((prevData) => ({
-          ...prevData,
-          universal_leadid: leadId,
-        }));
-      }
-    };
+      script.onload = () => {
+        // Set an interval to check for the lead ID
+        const checkLeadId = setInterval(() => {
+          const leadId = document.getElementById('leadid_token')?.value; // Adjust based on how the script outputs
+          if (leadId) {
+            setFormData((prevData) => ({
+              ...prevData,
+              universal_leadid: leadId,
+            }));
+            clearInterval(checkLeadId); // Stop checking once we have the lead ID
+          }
+        }, 1000); // Check every second
+
+        // Clean up the interval when the component unmounts
+        return () => clearInterval(checkLeadId);
+      };
+    }
 
     // Clean up the script when the component unmounts
     return () => {
-      document.body.removeChild(script);
+      const existingScript = document.getElementById(scriptId);
+      if (existingScript) {
+        document.body.removeChild(existingScript);
+      }
     };
   }, []);
 
@@ -56,7 +67,6 @@ const GetQuoteForm = () => {
         <h2 className="text-center text-3xl font-bold mb-8">Get Quote</h2>
 
         <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-lg space-y-6">
-          {/* First Name and Last Name in a row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700">First Name</label>
@@ -80,9 +90,9 @@ const GetQuoteForm = () => {
             </div>
           </div>
 
+          {/* Hidden Input Field */}
           <input id="leadid_token" name="universal_leadid" type="hidden" value={formData.universal_leadid} />
 
-          {/* TCPA Consent */}
           <div className="flex items-start">
             <input
               type="checkbox"
@@ -98,7 +108,6 @@ const GetQuoteForm = () => {
             </label>
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition"
