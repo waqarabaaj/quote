@@ -1,8 +1,8 @@
-import GetQuoteForm from "./components/FormField";
+import MedicareForm from "./components/MedicareForm.jsx";
 
 const App = () => {
   return (
-    <GetQuoteForm />
+    <MedicareForm />
   );
 };
 
