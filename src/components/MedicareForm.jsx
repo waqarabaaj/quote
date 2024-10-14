@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-// import Swal from "sweetalert2";
 import axios from "axios";
 
 const MedicareForm = () => {
@@ -22,8 +21,7 @@ const MedicareForm = () => {
 
   useEffect(() => {
     const scriptId = "LeadiDscript";
-  
-    // Check if the script already exists
+
     if (!document.getElementById(scriptId)) {
       const script = document.createElement("script");
       script.id = scriptId;
@@ -31,25 +29,34 @@ const MedicareForm = () => {
       script.async = true;
       script.src =
         "//create.lidstatic.com/campaign/bf1edbfe-9a9d-9c5c-6e14-f3d1bde74fe6.js?snippet_version=2";
-  
+
       document.body.appendChild(script);
-  
+
       script.onload = () => {
         console.log("LeadiD script loaded successfully");
-  
-        // Check for lead ID after script is loaded
+
+        // Set an interval to check for the lead ID token
         const checkLeadId = setInterval(() => {
-          const leadId = document.getElementById("leadid_token")?.value; // Adjust based on how the script outputs the token
+          const leadId = document.getElementById("leadid_token")?.value;
           if (leadId) {
             setFormData((prevData) => ({
               ...prevData,
               universal_leadid: leadId,
             }));
-            clearInterval(checkLeadId); // Stop checking once we have the lead ID
+            clearInterval(checkLeadId); // Stop checking once lead ID is found
           }
         }, 1000); // Check every second
       };
     }
+
+    // Clean up the script when the component unmounts
+    return () => {
+      const existingScript = document.getElementById(scriptId);
+      if (existingScript) {
+        document.body.removeChild(existingScript);
+      }
+    };
+  }, []);
 
   // Function to fetch city and state based on zip code
   const getCityAndStateFromZip = async (zipCode) => {
@@ -66,7 +73,7 @@ const MedicareForm = () => {
         }
       } catch (error) {
         console.error("Error fetching city/state:", error);
-        Swal.fire("Error!", "Unable to fetch city and state. Please check the ZIP code.", "error");
+        alert("Unable to fetch city and state. Please check the ZIP code.");
       }
     }
   };
@@ -101,66 +108,10 @@ const MedicareForm = () => {
     }
   };
 
-  // Submit form data to your backend API
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   console.log("Form data:", formData);
-
-  //   // Validate required fields
-  //   if (!formData.firstName || !formData.lastName || !formData.email) {
-  //     Swal.fire("Error!", "Please fill in all required fields.", "error");
-  //     return;
-  //   }
-
-  //   // Adjust form data (casting number fields)
-  //   const finalFormData = {
-  //     ...formData,
-  //     phoneNumber: formData.phoneNumber ? Number(formData.phoneNumber) : null,
-  //     zipCode: formData.zipCode ? Number(formData.zipCode) : null,
-  //     age: formData.age ? Number(formData.age) : null,
-  //   };
-
-  //   try {
-  //     // Send POST request
-  //     const response = await axios.post("http://localhost:5000/submit-form", finalFormData);
-
-  //     // Success alert
-  //     Swal.fire("Success!", "Your request has been submitted successfully.", "success");
-
-  //     // Reset form
-  //     formRef.current.reset();
-  //     setFormData({
-  //       firstName: "",
-  //       lastName: "",
-  //       phoneNumber: "",
-  //       zipCode: "",
-  //       city: "",
-  //       state: "",
-  //       dob: "",
-  //       age: "",
-  //       email: "",
-  //       universal_leadid: "",
-  //       tcpaConsent: false,
-  //       ipAddress: "",
-  //     });
-  //   } catch (error) {
-  //     console.error("Error submitting form:", error);
-  //     Swal.fire("Error!", "Failed to submit your data.", "error");
-  //   }
-  // };
-
-  // test handle submit 
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log(formData);
   };
-
-  useEffect(() => {
-    const existingScript = document.getElementById(scriptId);
-    if (existingScript) {
-      document.body.removeChild(existingScript);
-    }
-  }, []);
 
   return (
     <div className="bg-gray-50 flex justify-center py-12">
