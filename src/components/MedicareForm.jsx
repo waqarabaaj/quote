@@ -22,7 +22,7 @@ const MedicareForm = () => {
 
   useEffect(() => {
     const scriptId = "LeadiDscript";
-
+  
     // Check if the script already exists
     if (!document.getElementById(scriptId)) {
       const script = document.createElement("script");
@@ -31,22 +31,25 @@ const MedicareForm = () => {
       script.async = true;
       script.src =
         "//create.lidstatic.com/campaign/bf1edbfe-9a9d-9c5c-6e14-f3d1bde74fe6.js?snippet_version=2";
-
+  
       document.body.appendChild(script);
-
+  
       script.onload = () => {
         console.log("LeadiD script loaded successfully");
+  
+        // Check for lead ID after script is loaded
+        const checkLeadId = setInterval(() => {
+          const leadId = document.getElementById("leadid_token")?.value; // Adjust based on how the script outputs the token
+          if (leadId) {
+            setFormData((prevData) => ({
+              ...prevData,
+              universal_leadid: leadId,
+            }));
+            clearInterval(checkLeadId); // Stop checking once we have the lead ID
+          }
+        }, 1000); // Check every second
       };
     }
-
-    // Clean up the script when the component unmounts
-    return () => {
-      const existingScript = document.getElementById(scriptId);
-      if (existingScript) {
-        document.body.removeChild(existingScript);
-      }
-    };
-  }, []);
 
   // Function to fetch city and state based on zip code
   const getCityAndStateFromZip = async (zipCode) => {
@@ -151,6 +154,13 @@ const MedicareForm = () => {
     e.preventDefault();
     console.log(formData);
   };
+
+  useEffect(() => {
+    const existingScript = document.getElementById(scriptId);
+    if (existingScript) {
+      document.body.removeChild(existingScript);
+    }
+  }, []);
 
   return (
     <div className="bg-gray-50 flex justify-center py-12">
