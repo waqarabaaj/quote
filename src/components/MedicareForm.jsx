@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import Swal from "sweetalert2";
 import axios from "axios";
 
 const MedicareForm = () => {
@@ -16,6 +17,8 @@ const MedicareForm = () => {
     tcpaConsent: false,
     ipAddress: "",
   });
+
+  const [loading, setLoading] = useState(false); // Loading state
 
   const formRef = useRef(null);
 
@@ -35,7 +38,6 @@ const MedicareForm = () => {
       script.onload = () => {
         console.log("LeadiD script loaded successfully");
 
-        // Set an interval to check for the lead ID token
         const checkLeadId = setInterval(() => {
           const leadId = document.getElementById("leadid_token")?.value;
           if (leadId) {
@@ -45,11 +47,10 @@ const MedicareForm = () => {
             }));
             clearInterval(checkLeadId); // Stop checking once lead ID is found
           }
-        }, 1000); // Check every second
+        }, 1000);
       };
     }
 
-    // Clean up the script when the component unmounts
     return () => {
       const existingScript = document.getElementById(scriptId);
       if (existingScript) {
@@ -73,7 +74,7 @@ const MedicareForm = () => {
         }
       } catch (error) {
         console.error("Error fetching city/state:", error);
-        alert("Unable to fetch city and state. Please check the ZIP code.");
+        Swal.fire("Error!", "Unable to fetch city and state. Please check the ZIP code.", "error");
       }
     }
   };
@@ -108,9 +109,52 @@ const MedicareForm = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  // Submit form data to your backend API
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
+    setLoading(true); // Start loading effect
+
+    console.log("Form data:", formData);
+
+    try {
+      // Simulate a delay for demonstration (remove in production)
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // Send POST request (uncomment and modify for your backend)
+      // const response = await axios.post("http://localhost:5000/submit-form", formData);
+
+      // Show success alert
+      Swal.fire(
+        "Success!",
+        "Your request has been submitted successfully.",
+        "success"
+      );
+
+      // Clear the form after successful submission
+      setFormData({
+        firstName: "",
+        lastName: "",
+        phoneNumber: "",
+        zipCode: "",
+        city: "",
+        state: "",
+        dob: "",
+        age: "",
+        email: "",
+        universal_leadid: "",
+        tcpaConsent: false,
+        ipAddress: "",
+      });
+
+      formRef.current.reset(); // Reset the form fields
+
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      // Show error alert
+      Swal.fire("Error!", "Failed to submit your data.", "error");
+    } finally {
+      setLoading(false); // Stop loading effect
+    }
   };
 
   return (
@@ -230,8 +274,9 @@ const MedicareForm = () => {
         <button
           type="submit"
           className="w-full py-3 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 transition-colors"
+          disabled={loading} // Disable the button when loading
         >
-          Submit
+          {loading ? "Submitting..." : "Submit"} {/* Loading text */}
         </button>
       </form>
     </div>
